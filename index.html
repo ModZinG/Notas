@@ -6,22 +6,21 @@
 <title>Notas</title>
 <style>
     :root{
-        --bg: #000000;
-        --panel: rgba(28,28,30,.92);
-        --panel-2: rgba(44,44,46,.92);
-        --text: #ffffff;
-        --muted: rgba(235,235,245,.6);
-        --line: rgba(255,255,255,.08);
-        --accent: #ff0aad;
-        --accent-2: #ff64e5;
-        --danger: #ff453a;
-        --shadow: 0 18px 50px rgba(0,0,0,.45);
-        --radius: 24px;
-        --radius-sm: 18px;
-        --transition: 280ms cubic-bezier(.2,.8,.2,1);
+        --bg:#000000;
+        --text:#ffffff;
+        --muted:rgba(235,235,245,.62);
+        --line:rgba(255,255,255,.08);
+        --panel:rgba(28,28,30,.92);
+        --panel-2:rgba(44,44,46,.92);
+        --accent:#ff0aad;
+        --accent-2:#ff64e5;
+        --danger:#ff453a;
+        --shadow:0 18px 50px rgba(0,0,0,.45);
+        --transition:650ms cubic-bezier(.22,1,.36,1);
     }
 
     * { box-sizing: border-box; }
+
     html, body {
         margin: 0;
         width: 100%;
@@ -32,7 +31,7 @@
         overflow: hidden;
     }
 
-    button, textarea, input {
+    button, textarea {
         font: inherit;
     }
 
@@ -41,10 +40,39 @@
         width: 100vw;
         height: 100vh;
         overflow: hidden;
-        background:
-            radial-gradient(circle at top, rgba(255, 10, 214, 0.12), transparent 35%),
-            radial-gradient(circle at bottom, rgba(224, 23, 90, 0.08), transparent 30%),
-            var(--bg);
+        background: var(--bg);
+    }
+
+    .app::before,
+    .app::after {
+        content: "";
+        position: absolute;
+        width: 140vw;
+        height: 140vw;
+        border-radius: 50%;
+        pointer-events: none;
+        filter: blur(20px);
+        opacity: .65;
+        z-index: 0;
+        animation: drift 18s ease-in-out infinite alternate;
+    }
+
+    .app::before {
+        top: -28vw;
+        left: -20vw;
+        background: radial-gradient(circle, rgba(255, 10, 214, 0.18), transparent 62%);
+    }
+
+    .app::after {
+        bottom: -34vw;
+        right: -18vw;
+        background: radial-gradient(circle, rgba(224, 23, 90, 0.12), transparent 64%);
+        animation-duration: 24s;
+    }
+
+    @keyframes drift {
+        from { transform: translate3d(-1.5%, -1.5%, 0) scale(1); }
+        to   { transform: translate3d(1.8%, 1.8%, 0) scale(1.1); }
     }
 
     .view {
@@ -53,14 +81,20 @@
         display: flex;
         flex-direction: column;
         opacity: 0;
-        transform: translateX(24px) scale(.985);
+        transform: translateX(42px) scale(.965);
+        filter: blur(10px);
         pointer-events: none;
-        transition: opacity var(--transition), transform var(--transition);
+        transition:
+            opacity var(--transition),
+            transform var(--transition),
+            filter var(--transition);
+        z-index: 1;
     }
 
     .view.active {
         opacity: 1;
         transform: translateX(0) scale(1);
+        filter: blur(0);
         pointer-events: auto;
     }
 
@@ -75,6 +109,12 @@
         backdrop-filter: blur(18px);
         -webkit-backdrop-filter: blur(18px);
         background: rgba(0,0,0,.34);
+    }
+
+    .top-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .title {
@@ -97,14 +137,15 @@
         border-radius: 999px;
         box-shadow: var(--shadow);
         cursor: pointer;
-        transition: transform 140ms ease, background var(--transition), opacity var(--transition);
+        transition: transform 180ms ease, background 280ms ease, opacity 280ms ease;
+        -webkit-tap-highlight-color: transparent;
     }
 
     .icon-btn:hover { transform: scale(1.02); }
     .icon-btn:active { transform: scale(.98); }
-    .icon-btn.primary { background: linear-gradient(180deg, rgb(255, 10, 214), rgb(255, 0, 170)); }
+
     .icon-btn.ghost { background: rgba(44,44,46,.96); }
-    .icon-btn.danger { background: rgba(255, 58, 140, 0.16); color: #ffd5d2; }
+    .icon-btn.danger { background: rgba(255, 69, 58, .16); color: #ffd5d2; }
 
     .content {
         flex: 1;
@@ -124,11 +165,11 @@
         box-shadow: var(--shadow);
         backdrop-filter: blur(18px);
         -webkit-backdrop-filter: blur(18px);
-        animation: pop 420ms cubic-bezier(.2,.9,.2,1);
+        animation: pop 900ms cubic-bezier(.22,1,.36,1);
     }
 
     @keyframes pop {
-        from { transform: translateY(18px) scale(.98); opacity: .2; }
+        from { transform: translateY(20px) scale(.965); opacity: 0; }
         to { transform: translateY(0) scale(1); opacity: 1; }
     }
 
@@ -163,14 +204,20 @@
         font-size: 17px;
         font-weight: 700;
         cursor: pointer;
-        transition: transform 140ms ease, filter var(--transition), opacity var(--transition);
+        transition: transform 180ms ease, filter 280ms ease, opacity 280ms ease;
         box-shadow: var(--shadow);
+        -webkit-tap-highlight-color: transparent;
     }
 
     .big-btn:active { transform: scale(.985); }
+
     .big-btn.new {
         background: linear-gradient(180deg, rgb(143, 5, 63), rgb(255, 0, 200));
+        box-shadow:
+            0 12px 28px rgba(255, 0, 200, .24),
+            0 0 0 1px rgba(255,255,255,.06) inset;
     }
+
     .big-btn.history {
         background: rgba(44,44,46,.96);
         border: 1px solid rgba(255,255,255,.07);
@@ -189,31 +236,65 @@
         min-height: 0;
         overflow: auto;
         padding: 8px 0 10px;
+        overscroll-behavior: contain;
     }
 
     .note-item {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
+        position: relative;
         margin-bottom: 12px;
-        padding: 15px 16px;
         border-radius: 22px;
-        background: linear-gradient(180deg, rgba(28,28,30,.96), rgba(22,22,24,.96));
-        border: 1px solid rgba(255,255,255,.07);
+        overflow: hidden;
         box-shadow: var(--shadow);
         cursor: pointer;
-        transition: transform 140ms ease, border-color var(--transition), background var(--transition);
-        animation: rise 300ms cubic-bezier(.2,.9,.2,1);
+        touch-action: pan-y;
+        user-select: none;
+        -webkit-user-select: none;
+        animation: rise 650ms cubic-bezier(.22,1,.36,1);
     }
 
     @keyframes rise {
-        from { transform: translateY(8px); opacity: 0; }
+        from { transform: translateY(10px); opacity: 0; }
         to { transform: translateY(0); opacity: 1; }
     }
 
-    .note-item:hover {
-        transform: translateY(-1px);
-        border-color: rgba(255, 10, 145, 0.28);
+    .swipe-bg {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 18px;
+        background: linear-gradient(90deg, rgba(255, 59, 48, .18), rgba(255, 59, 48, .95));
+        color: rgba(255,255,255,.95);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: -.01em;
+    }
+
+    .note-surface {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 15px 16px;
+        background: linear-gradient(180deg, rgba(28,28,30,.98), rgba(22,22,24,.98));
+        border: 1px solid rgba(255,255,255,.07);
+        transition:
+            transform 280ms cubic-bezier(.22,1,.36,1),
+            opacity 280ms cubic-bezier(.22,1,.36,1),
+            filter 280ms cubic-bezier(.22,1,.36,1);
+        will-change: transform, opacity;
+    }
+
+    .note-item.dragging .note-surface {
+        transition: none;
+    }
+
+    .note-item.removing .note-surface {
+        opacity: 0;
+        transform: translateX(-110%) scale(.98);
+        filter: blur(4px);
     }
 
     .note-title {
@@ -280,6 +361,12 @@
         color: rgba(235,235,245,.34);
     }
 
+    .editor-actions {
+        display: flex;
+        justify-content: center;
+        padding: 8px 0 10px;
+    }
+
     .editor-foot {
         display: flex;
         gap: 10px;
@@ -305,7 +392,7 @@
         box-shadow: 0 0 0 6px rgba(46,230,107,.10);
         opacity: 0;
         transform: scale(.8);
-        transition: opacity var(--transition), transform var(--transition);
+        transition: opacity 260ms ease, transform 260ms ease;
     }
 
     .dot.show {
@@ -315,6 +402,14 @@
 
     .tiny {
         color: var(--muted);
+    }
+
+    .back-bottom {
+        background: rgba(44,44,46,.96);
+        border: 1px solid rgba(255,255,255,.07);
+        padding: 12px 26px;
+        border-radius: 20px;
+        box-shadow: var(--shadow);
     }
 
     .toolbar {
@@ -335,18 +430,19 @@
         .menu-card { padding: 18px; border-radius: 26px; }
         .menu-head h1 { font-size: 24px; }
         .big-btn { padding: 15px 16px; }
-        .note-item { padding: 14px 14px; border-radius: 20px; }
+        .note-surface { padding: 14px 14px; border-radius: 20px; }
         .editor-box { font-size: 16px; }
     }
 
-    /* Scrollbar discreta */
     .history-list::-webkit-scrollbar {
         width: 8px;
     }
+
     .history-list::-webkit-scrollbar-thumb {
         background: rgba(255,255,255,.14);
         border-radius: 10px;
     }
+
     .history-list::-webkit-scrollbar-track {
         background: transparent;
     }
@@ -356,23 +452,15 @@
 <div class="app">
 
     <section class="view active" id="menuView">
-        <div class="topbar">
-            <div>
-                <div class="title">Apuntes</div>
-                <div class="subtitle">ideas para proximos videos!</div>
-            </div>
-            <div style="width:40px;"></div>
-        </div>
-
         <div class="content">
             <div class="menu-card">
                 <div class="menu-head">
-                    <h1>Hola Amgel, Buen día!</h1>
-                    <p>¿Qué ídea tenemos hoy en mente?</p>
+                    <h1>Hola Ángel</h1>
+                    <p>¿Qué idea tenemos hoy en mente?</p>
                 </div>
 
                 <div class="menu-actions">
-                    <button class="big-btn new" id="newBtn">Crear</button>
+                    <button class="big-btn new" id="newBtn">Nueva</button>
                     <button class="big-btn history" id="historyBtn">Historial</button>
                 </div>
             </div>
@@ -381,7 +469,7 @@
 
     <section class="view" id="historyView">
         <div class="topbar">
-            <div class="back-row">
+            <div class="top-left">
                 <button class="icon-btn ghost" id="backFromHistory">Volver</button>
                 <div>
                     <div class="title">Historial</div>
@@ -402,16 +490,13 @@
 
     <section class="view" id="editorView">
         <div class="topbar">
-            <div class="back-row">
-                <button class="icon-btn ghost" id="backFromEditor">Volver</button>
+            <div class="top-left">
                 <div>
                     <div class="title" id="editorTitle">Nueva nota</div>
                     <div class="subtitle" id="editorSubtitle">Se guarda al salir o al crear otra</div>
                 </div>
             </div>
-            <div class="toolbar">
-                <button class="icon-btn primary" id="saveBtn">Guardar</button>
-            </div>
+            <div style="width: 40px;"></div>
         </div>
 
         <div class="content">
@@ -420,9 +505,14 @@
                     <textarea
                         class="editor-box"
                         id="noteText"
-                        placeholder="Comencemos!!"
+                        placeholder="Escribe tu nota..."
                         spellcheck="false"></textarea>
                 </div>
+
+                <div class="editor-actions">
+                    <button class="icon-btn back-bottom" id="backBottom">Volver</button>
+                </div>
+
                 <div class="editor-foot">
                     <div class="status">
                         <span class="dot" id="savedDot"></span>
@@ -439,6 +529,7 @@
 <script>
 (() => {
     const STORAGE_KEY = "minimal_notes_ios";
+
     const menuView = document.getElementById("menuView");
     const historyView = document.getElementById("historyView");
     const editorView = document.getElementById("editorView");
@@ -446,8 +537,7 @@
     const newBtn = document.getElementById("newBtn");
     const historyBtn = document.getElementById("historyBtn");
     const backFromHistory = document.getElementById("backFromHistory");
-    const backFromEditor = document.getElementById("backFromEditor");
-    const saveBtn = document.getElementById("saveBtn");
+    const backBottom = document.getElementById("backBottom");
     const deleteAllBtn = document.getElementById("deleteAllBtn");
 
     const historyList = document.getElementById("historyList");
@@ -463,7 +553,6 @@
     let currentId = null;
     let currentView = "menu";
     let dirty = false;
-    let saveTimer = null;
 
     function loadNotes() {
         try {
@@ -508,14 +597,15 @@
         editorView.classList.toggle("active", viewName === "editor");
     }
 
-    function showSavedPulse() {
+    function pulseSaved() {
         saveState.textContent = "Guardado";
         savedDot.classList.add("show");
-        clearTimeout(showSavedPulse._t);
-        showSavedPulse._t = setTimeout(() => {
+
+        clearTimeout(pulseSaved._t);
+        pulseSaved._t = setTimeout(() => {
             saveState.textContent = dirty ? "Editando..." : "Listo";
             savedDot.classList.remove("show");
-        }, 1200);
+        }, 1000);
     }
 
     function markDirty() {
@@ -539,21 +629,20 @@
         }
 
         const timestamp = nowStamp();
+
+        const existingIndex = getCurrentIndex();
+        const previousCreatedAt = existingIndex !== -1 ? notes[existingIndex].createdAt : timestamp;
+
         const payload = {
             id: currentId || String(Date.now()) + Math.random().toString(16).slice(2),
             content: text,
             title: noteTitle(text),
-            createdAt: currentId ? (notes[getCurrentIndex()]?.createdAt || timestamp) : timestamp,
+            createdAt: previousCreatedAt,
             updatedAt: timestamp
         };
 
-        if (currentId) {
-            const idx = getCurrentIndex();
-            if (idx !== -1) {
-                notes[idx] = payload;
-            } else {
-                notes.unshift(payload);
-            }
+        if (currentId && existingIndex !== -1) {
+            notes[existingIndex] = payload;
         } else {
             notes.unshift(payload);
             currentId = payload.id;
@@ -563,20 +652,22 @@
         persistNotes();
         dirty = false;
         noteDate.textContent = `Actualizada: ${payload.updatedAt}`;
-        showSavedPulse();
+        pulseSaved();
         return true;
     }
 
     function openNewNote() {
         if (currentView === "editor" && dirty) saveCurrentNote();
+
         currentId = null;
         noteText.value = "";
         editorTitle.textContent = "Nueva nota";
-        editorSubtitle.textContent = "";
+        editorSubtitle.textContent = "La primera línea será el título";
         noteDate.textContent = "";
         dirty = false;
         saveState.textContent = "Listo";
         savedDot.classList.remove("show");
+
         setView("editor");
         setTimeout(() => noteText.focus(), 50);
     }
@@ -596,7 +687,7 @@
         currentId = note.id;
         noteText.value = note.content || "";
         editorTitle.textContent = note.title || "Sin título";
-        editorSubtitle.textContent = "Edita tu nota y pulsa Guardar o Volver";
+        editorSubtitle.textContent = "Edita tu nota y vuelve cuando termines";
         noteDate.textContent = `Creada: ${note.createdAt} · Actualizada: ${note.updatedAt}`;
         dirty = false;
         saveState.textContent = "Listo";
@@ -606,15 +697,167 @@
         setTimeout(() => noteText.focus(), 50);
     }
 
+    function vibrateDelete() {
+        try {
+            if (navigator.vibrate) {
+                navigator.vibrate([18, 32, 18]);
+            }
+        } catch {}
+    }
+
+    function deleteNoteAnimated(id, itemEl) {
+        const index = notes.findIndex(n => n.id === id);
+        if (index === -1) return;
+
+        vibrateDelete();
+
+        if (itemEl) {
+            itemEl.classList.add("removing");
+        }
+
+        setTimeout(() => {
+            const idxNow = notes.findIndex(n => n.id === id);
+            if (idxNow !== -1) {
+                notes.splice(idxNow, 1);
+                persistNotes();
+            }
+
+            if (currentId === id) {
+                currentId = null;
+                dirty = false;
+            }
+
+            renderHistory();
+        }, 280);
+    }
+
+    function attachSwipeHandlers(item, id) {
+        const surface = item.querySelector(".note-surface");
+        const swipeBg = item.querySelector(".swipe-bg");
+
+        let startX = 0;
+        let startY = 0;
+        let dx = 0;
+        let dy = 0;
+        let dragging = false;
+        let suppressClick = false;
+        let pointerId = null;
+
+        const resetSurface = (animated = true) => {
+            if (animated) {
+                surface.style.transition = "transform 280ms cubic-bezier(.22,1,.36,1), opacity 280ms cubic-bezier(.22,1,.36,1), filter 280ms cubic-bezier(.22,1,.36,1)";
+            } else {
+                surface.style.transition = "none";
+            }
+            surface.style.transform = "translateX(0px)";
+            swipeBg.style.opacity = "0";
+            item.classList.remove("dragging");
+        };
+
+        item.addEventListener("pointerdown", (e) => {
+            if (e.button !== 0) return;
+
+            pointerId = e.pointerId;
+            startX = e.clientX;
+            startY = e.clientY;
+            dx = 0;
+            dy = 0;
+            dragging = false;
+            suppressClick = false;
+            item.classList.add("dragging");
+            surface.style.transition = "none";
+
+            try { item.setPointerCapture(pointerId); } catch {}
+        });
+
+        item.addEventListener("pointermove", (e) => {
+            if (pointerId !== e.pointerId) return;
+            dx = e.clientX - startX;
+            dy = e.clientY - startY;
+
+            if (!dragging) {
+                if (Math.abs(dx) > 7 && Math.abs(dx) > Math.abs(dy)) {
+                    dragging = true;
+                } else {
+                    return;
+                }
+            }
+
+            if (!dragging) return;
+
+            if (dx > 0) dx = 0;
+
+            let translate = dx;
+
+            if (translate < -180) {
+                translate = -180 - ((Math.abs(translate) - 180) * 0.14);
+            }
+
+            surface.style.transform = `translateX(${translate}px)`;
+            const progress = Math.min(1, Math.abs(translate) / 140);
+            swipeBg.style.opacity = String(Math.max(0, progress * 0.95));
+
+            if (Math.abs(translate) > 100 && !item.dataset.hapticed) {
+                item.dataset.hapticed = "1";
+                try {
+                    if (navigator.vibrate) navigator.vibrate(10);
+                } catch {}
+            }
+
+            if (Math.abs(translate) <= 100) {
+                delete item.dataset.hapticed;
+            }
+        });
+
+        const finishPointer = (e) => {
+            if (pointerId !== e.pointerId) return;
+
+            try { item.releasePointerCapture(pointerId); } catch {}
+            pointerId = null;
+
+            if (!dragging) {
+                item.classList.remove("dragging");
+                surface.style.transition = "transform 280ms cubic-bezier(.22,1,.36,1)";
+                return;
+            }
+
+            suppressClick = true;
+            setTimeout(() => {
+                suppressClick = false;
+            }, 350);
+
+            if (dx < -120) {
+                deleteNoteAnimated(id, item);
+            } else {
+                resetSurface(true);
+            }
+
+            delete item.dataset.hapticed;
+        };
+
+        item.addEventListener("pointerup", finishPointer);
+        item.addEventListener("pointercancel", finishPointer);
+
+        item.addEventListener("click", (e) => {
+            if (suppressClick || item.classList.contains("removing")) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+            openNote(id);
+        });
+    }
+
     function renderHistory() {
         notes = loadNotes().sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
         const count = notes.length;
         historyCount.textContent = count === 1 ? "1 nota guardada" : `${count} notas guardadas`;
 
         if (!count) {
             historyList.innerHTML = `
                 <div class="empty-state">
-                    No hay notas todavía. Dale a “Nueva” y arranca el cuaderno digital.
+                    No hay notas todavía. Dale a “Nueva” y empieza tu cuaderno digital.
                 </div>
             `;
             return;
@@ -622,70 +865,63 @@
 
         historyList.innerHTML = notes.map((n) => `
             <div class="note-item" data-id="${escapeHTML(n.id)}">
-                <div class="note-title">${escapeHTML(n.title || "Sin título")}</div>
-                <div class="note-meta">
-                    <span>${escapeHTML(n.updatedAt || n.createdAt || "")}</span>
-                    <span>•</span>
-                    <span>${escapeHTML((n.content || "").split("\n").length + " línea(s)")}</span>
+                <div class="swipe-bg">Desliza para borrar</div>
+                <div class="note-surface">
+                    <div class="note-title">${escapeHTML(n.title || "Sin título")}</div>
+                    <div class="note-meta">
+                        <span>${escapeHTML(n.updatedAt || n.createdAt || "")}</span>
+                        <span>•</span>
+                        <span>${escapeHTML((n.content || "").split("\n").length + " línea(s)")}</span>
+                    </div>
                 </div>
             </div>
         `).join("");
 
         historyList.querySelectorAll(".note-item").forEach(item => {
-            item.addEventListener("click", () => openNote(item.dataset.id));
+            const id = item.dataset.id;
+            attachSwipeHandlers(item, id);
         });
     }
 
     function deleteAllNotes() {
         const ok = confirm("¿Borrar todas las notas?");
         if (!ok) return;
+
         notes = [];
-        persistNotes();
         currentId = null;
+        dirty = false;
+        persistNotes();
         renderHistory();
+
         if (currentView === "editor") {
             noteText.value = "";
             editorTitle.textContent = "Nueva nota";
             editorSubtitle.textContent = "La primera línea será el título";
             noteDate.textContent = "";
+            saveState.textContent = "Listo";
+            savedDot.classList.remove("show");
         }
     }
 
     newBtn.addEventListener("click", openNewNote);
     historyBtn.addEventListener("click", openHistory);
     backFromHistory.addEventListener("click", () => setView("menu"));
-    backFromEditor.addEventListener("click", () => {
+
+    backBottom.addEventListener("click", () => {
         if (dirty) saveCurrentNote();
         setView("menu");
     });
-    saveBtn.addEventListener("click", () => {
-        saveCurrentNote();
-        renderHistory();
-    });
+
     deleteAllBtn.addEventListener("click", deleteAllNotes);
 
     noteText.addEventListener("input", () => {
         markDirty();
-        clearTimeout(saveTimer);
-        saveTimer = setTimeout(() => {
-            if (currentView === "editor" && dirty) {
-                saveCurrentNote();
-            }
-        }, 1200);
-    });
-
-    noteText.addEventListener("keydown", (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
-            e.preventDefault();
-            saveCurrentNote();
-        }
     });
 
     window.addEventListener("beforeunload", () => {
-        if (currentView === "editor") saveCurrentNote();
+        if (currentView === "editor" && dirty) saveCurrentNote();
     });
 
-    // Estado inicial
     renderHistory();
 })();
 </script>
