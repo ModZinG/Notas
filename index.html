@@ -109,6 +109,8 @@
         backdrop-filter: blur(18px);
         -webkit-backdrop-filter: blur(18px);
         background: rgba(0,0,0,.34);
+        position: relative;
+        z-index: 3;
     }
 
     .top-left {
@@ -137,8 +139,9 @@
         border-radius: 999px;
         box-shadow: var(--shadow);
         cursor: pointer;
-        transition: transform 180ms ease, background 280ms ease, opacity 280ms ease;
+        transition: transform 180ms ease, background 280ms ease, opacity 280ms ease, box-shadow 280ms ease;
         -webkit-tap-highlight-color: transparent;
+        user-select: none;
     }
 
     .icon-btn:hover { transform: scale(1.02); }
@@ -154,6 +157,16 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    .content.history-content,
+    .content.folder-content {
+        align-items: flex-start;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-gutter: stable;
     }
 
     .menu-card {
@@ -207,6 +220,7 @@
         transition: transform 180ms ease, filter 280ms ease, opacity 280ms ease;
         box-shadow: var(--shadow);
         -webkit-tap-highlight-color: transparent;
+        user-select: none;
     }
 
     .big-btn:active { transform: scale(.985); }
@@ -224,11 +238,238 @@
     }
 
     .history-wrap {
-        width: min(760px, 100%);
+        width: min(980px, 100%);
         height: 100%;
         display: flex;
         flex-direction: column;
         min-height: 0;
+        gap: 14px;
+        position: relative;
+    }
+
+    .folders-section,
+    .notes-section,
+    .folder-hero {
+        background: linear-gradient(180deg, rgba(28,28,30,.96), rgba(18,18,20,.96));
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 28px;
+        padding: 16px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+    }
+
+    .folders-section {
+        flex: 0 0 auto;
+        max-height: min(42vh, 420px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .notes-section {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .section-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: -.02em;
+        margin: 0;
+    }
+
+    .section-subtitle {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+        line-height: 1.35;
+    }
+
+    .clear-filter-btn {
+        white-space: nowrap;
+        padding: 9px 12px;
+        font-size: 13px;
+    }
+
+    .folder-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .folder-empty {
+        width: 100%;
+        min-height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 24px;
+        border: 1px dashed rgba(255,255,255,.12);
+        background: rgba(255,255,255,.03);
+        color: var(--muted);
+        text-align: center;
+        padding: 18px;
+    }
+
+    .folder-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 24px;
+        padding: 14px;
+        min-height: 128px;
+        border: 1px solid rgba(255,255,255,.08);
+        background:
+            radial-gradient(circle at top right, rgba(255,255,255,.10), transparent 38%),
+            linear-gradient(180deg, rgba(44,44,46,.98), rgba(24,24,26,.98));
+        box-shadow: 0 16px 28px rgba(0,0,0,.28);
+        cursor: grab;
+        user-select: none;
+        transition:
+            transform 220ms cubic-bezier(.22,1,.36,1),
+            box-shadow 220ms cubic-bezier(.22,1,.36,1),
+            border-color 220ms cubic-bezier(.22,1,.36,1),
+            opacity 220ms cubic-bezier(.22,1,.36,1);
+        isolation: isolate;
+    }
+
+    .folder-card:active {
+        cursor: grabbing;
+    }
+
+    .folder-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 15% 18%, rgba(255,255,255,.14), transparent 34%);
+        opacity: .8;
+        pointer-events: none;
+    }
+
+    .folder-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .folder-card.active {
+        border-color: rgba(255, 10, 173, .55);
+        box-shadow:
+            0 18px 36px rgba(0,0,0,.35),
+            0 0 0 1px rgba(255, 10, 173, .22) inset;
+    }
+
+    .folder-card.drag-over {
+        transform: scale(1.03);
+        box-shadow:
+            0 20px 42px rgba(0,0,0,.44),
+            0 0 0 1px rgba(255,255,255,.12) inset,
+            0 0 0 2px rgba(255, 10, 173, .38);
+    }
+
+    .folder-card.dragging {
+        opacity: .55;
+        transform: scale(.98);
+    }
+
+    .folder-card.success {
+        animation: folderPulse 620ms cubic-bezier(.22,1,.36,1);
+    }
+
+    @keyframes folderPulse {
+        0%   { transform: scale(1); }
+        38%  { transform: scale(1.06); box-shadow: 0 0 0 1px rgba(255, 10, 173, .42), 0 22px 44px rgba(0,0,0,.46); }
+        100% { transform: scale(1); }
+    }
+
+    .folder-card.opening {
+        animation: folderOpen 420ms cubic-bezier(.22,1,.36,1);
+        transform-origin: center top;
+    }
+
+    @keyframes folderOpen {
+        from { transform: translateY(18px) scale(.94); opacity: 0; filter: blur(8px); }
+        to   { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
+    }
+
+    .folder-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        margin-bottom: 12px;
+        background: rgba(255,255,255,.10);
+        box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
+        position: relative;
+        z-index: 1;
+    }
+
+    .folder-name {
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: -.02em;
+        margin-bottom: 8px;
+        padding-right: 24px;
+        position: relative;
+        z-index: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .folder-count {
+        font-size: 12px;
+        color: rgba(255,255,255,.72);
+        position: relative;
+        z-index: 1;
+    }
+
+    .folder-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 12px;
+        font-size: 11px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.08);
+        color: rgba(255,255,255,.82);
+        position: relative;
+        z-index: 1;
+    }
+
+    .folder-menu-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 2;
+        width: 30px;
+        height: 30px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(0,0,0,.26);
+        color: #fff;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    .folder-menu-btn:active {
+        transform: scale(.96);
     }
 
     .history-list {
@@ -250,6 +491,7 @@
         user-select: none;
         -webkit-user-select: none;
         animation: rise 650ms cubic-bezier(.22,1,.36,1);
+        transform: translateZ(0);
     }
 
     @keyframes rise {
@@ -269,6 +511,7 @@
         font-size: 13px;
         font-weight: 700;
         letter-spacing: -.01em;
+        opacity: 0;
     }
 
     .note-surface {
@@ -276,25 +519,41 @@
         z-index: 1;
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 7px;
         padding: 15px 16px;
         background: linear-gradient(180deg, rgba(28,28,30,.98), rgba(22,22,24,.98));
         border: 1px solid rgba(255,255,255,.07);
         transition:
             transform 280ms cubic-bezier(.22,1,.36,1),
             opacity 280ms cubic-bezier(.22,1,.36,1),
-            filter 280ms cubic-bezier(.22,1,.36,1);
+            filter 280ms cubic-bezier(.22,1,.36,1),
+            box-shadow 280ms cubic-bezier(.22,1,.36,1);
         will-change: transform, opacity;
+    }
+
+    .note-item.dragging {
+        z-index: 12;
     }
 
     .note-item.dragging .note-surface {
         transition: none;
+        box-shadow: 0 26px 58px rgba(0,0,0,.45);
     }
 
     .note-item.removing .note-surface {
         opacity: 0;
         transform: translateX(-110%) scale(.98);
         filter: blur(4px);
+    }
+
+    .note-item.saved .note-surface {
+        animation: noteSaved 620ms cubic-bezier(.22,1,.36,1);
+    }
+
+    @keyframes noteSaved {
+        0%   { transform: scale(1); }
+        38%  { transform: scale(.97); }
+        100% { transform: scale(1); }
     }
 
     .note-title {
@@ -312,11 +571,25 @@
         display: flex;
         gap: 8px;
         flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .note-folder-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 2px;
+        font-size: 11px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.08);
+        color: rgba(255,255,255,.84);
+        width: fit-content;
     }
 
     .empty-state {
         width: 100%;
-        margin-top: 32px;
+        margin-top: 8px;
         padding: 24px;
         border-radius: 24px;
         text-align: center;
@@ -416,12 +689,375 @@
         display: flex;
         gap: 10px;
         align-items: center;
+        position: relative;
     }
 
-    .back-row {
+    .folder-panel {
+        position: absolute;
+        top: 54px;
+        right: 0;
+        width: min(320px, calc(100vw - 32px));
+        background: rgba(18,18,20,.98);
+        border: 1px solid rgba(255,255,255,.09);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        padding: 12px;
+        opacity: 0;
+        transform: translateY(-8px) scale(.98);
+        pointer-events: none;
+        transition: opacity 220ms ease, transform 220ms ease;
+        z-index: 10;
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+    }
+
+    .folder-panel.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+    }
+
+    .panel-action {
+        width: 100%;
+        border: 0;
+        cursor: pointer;
+        border-radius: 18px;
+        padding: 14px 14px;
+        color: #fff;
+        background: linear-gradient(180deg, rgb(143, 5, 63), rgb(255, 0, 200));
+        font-weight: 700;
+        box-shadow: 0 12px 26px rgba(255, 0, 200, .22);
+        margin-bottom: 10px;
+    }
+
+    .switch-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 10px;
+        border-radius: 18px;
+        background: rgba(255,255,255,.04);
+        border: 1px solid rgba(255,255,255,.06);
+        cursor: pointer;
+    }
+
+    .switch-copy {
+        min-width: 0;
+    }
+
+    .switch-title {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: -.01em;
+    }
+
+    .switch-subtitle {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+        line-height: 1.35;
+    }
+
+    .switch {
+        position: relative;
+        width: 54px;
+        height: 32px;
+        flex: 0 0 auto;
+    }
+
+    .switch input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .switch-track {
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,.12);
+        border-radius: 999px;
+        transition: background 220ms ease;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+    }
+
+    .switch-thumb {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,.3);
+        transition: transform 220ms ease;
+    }
+
+    .switch input:checked ~ .switch-track {
+        background: linear-gradient(180deg, rgb(143, 5, 63), rgb(255, 0, 200));
+    }
+
+    .switch input:checked ~ .switch-thumb {
+        transform: translateX(22px);
+    }
+
+    .history-view.drag-mode .note-item {
+        cursor: grab;
+    }
+
+    .history-view.drag-mode .note-item:active {
+        cursor: grabbing;
+    }
+
+    .folder-view .content {
+        align-items: flex-start;
+    }
+
+    .folder-shell {
+        width: min(980px, 100%);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-height: 0;
+        animation: folderOpen 420ms cubic-bezier(.22,1,.36,1);
+        transform-origin: center top;
+    }
+
+    @keyframes folderOpen {
+        from { transform: translateY(18px) scale(.94); opacity: 0; filter: blur(8px); }
+        to   { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
+    }
+
+    .folder-hero {
+        overflow: hidden;
+        position: relative;
+    }
+
+    .folder-hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 15% 18%, rgba(255,255,255,.14), transparent 34%);
+        pointer-events: none;
+    }
+
+    .folder-hero-inner {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .folder-hero-left {
+        min-width: 0;
+        display: flex;
+        gap: 14px;
+        align-items: center;
+    }
+
+    .folder-hero-icon {
+        width: 62px;
+        height: 62px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        background: rgba(255,255,255,.10);
+        box-shadow: 0 0 0 1px rgba(255,255,255,.10) inset;
+        flex: 0 0 auto;
+    }
+
+    .folder-hero-title {
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: -.04em;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .folder-hero-subtitle {
+        margin-top: 4px;
+        font-size: 13px;
+        color: var(--muted);
+    }
+
+    .folder-hero-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        align-items: center;
+    }
+
+    .folder-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        min-height: 0;
+        padding-bottom: 10px;
+    }
+
+    .gallery-note {
+        position: relative;
+        border-radius: 22px;
+        overflow: hidden;
+        background: linear-gradient(180deg, rgba(28,28,30,.98), rgba(22,22,24,.98));
+        border: 1px solid rgba(255,255,255,.07);
+        box-shadow: var(--shadow);
+        cursor: pointer;
+        transition: transform 200ms ease, box-shadow 200ms ease;
+    }
+
+    .gallery-note:hover {
+        transform: translateY(-2px);
+    }
+
+    .gallery-note-inner {
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-height: 140px;
+    }
+
+    .gallery-note-title {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -.02em;
+        line-height: 1.25;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .gallery-note-preview {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.4;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 5;
+        -webkit-box-orient: vertical;
+    }
+
+    .gallery-note-meta {
+        margin-top: auto;
+        font-size: 11px;
+        color: rgba(255,255,255,.7);
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .folder-empty-state {
+        width: 100%;
+        padding: 24px;
+        border-radius: 24px;
+        text-align: center;
+        color: var(--muted);
+        border: 1px dashed rgba(255,255,255,.12);
+        background: rgba(255,255,255,.03);
+    }
+
+    .toast-layer {
+        position: fixed;
+        left: 50%;
+        bottom: 20px;
+        transform: translateX(-50%);
+        z-index: 999;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .toast {
+        min-width: min(320px, calc(100vw - 28px));
+        max-width: min(420px, calc(100vw - 28px));
+        padding: 12px 14px;
+        border-radius: 18px;
+        background: rgba(18,18,20,.94);
+        border: 1px solid rgba(255,255,255,.09);
+        box-shadow: var(--shadow);
+        color: #fff;
+        font-size: 13px;
+        line-height: 1.35;
         display: flex;
         align-items: center;
         gap: 10px;
+        opacity: 0;
+        transform: translateY(14px) scale(.96);
+        transition: opacity 220ms ease, transform 220ms ease;
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+    }
+
+    .toast.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    .toast-emoji {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,.08);
+        flex: 0 0 auto;
+    }
+
+    .folder-action-menu {
+        position: fixed;
+        z-index: 1200;
+        min-width: 180px;
+        background: rgba(18,18,20,.98);
+        border: 1px solid rgba(255,255,255,.09);
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        padding: 8px;
+        display: none;
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+    }
+
+    .folder-action-menu.show {
+        display: block;
+    }
+
+    .folder-action-menu button {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        color: #fff;
+        padding: 12px 12px;
+        border-radius: 14px;
+        cursor: pointer;
+        text-align: left;
+    }
+
+    .folder-action-menu button:hover {
+        background: rgba(255,255,255,.08);
+    }
+
+    .folder-action-menu .danger-item {
+        color: #ffd5d2;
+    }
+
+    @media (max-width: 920px) {
+        .folder-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
     }
 
     @media (max-width: 560px) {
@@ -432,18 +1068,33 @@
         .big-btn { padding: 15px 16px; }
         .note-surface { padding: 14px 14px; border-radius: 20px; }
         .editor-box { font-size: 16px; }
+        .folders-section,
+        .notes-section,
+        .folder-hero { border-radius: 24px; padding: 14px; }
+        .folder-grid { grid-template-columns: 1fr; }
+        .folder-hero-inner { flex-direction: column; align-items: flex-start; }
+        .folder-hero-actions { justify-content: flex-start; }
     }
 
-    .history-list::-webkit-scrollbar {
+    .history-list::-webkit-scrollbar,
+    .folders-section::-webkit-scrollbar,
+    .content.history-content::-webkit-scrollbar,
+    .content.folder-content::-webkit-scrollbar {
         width: 8px;
     }
 
-    .history-list::-webkit-scrollbar-thumb {
+    .history-list::-webkit-scrollbar-thumb,
+    .folders-section::-webkit-scrollbar-thumb,
+    .content.history-content::-webkit-scrollbar-thumb,
+    .content.folder-content::-webkit-scrollbar-thumb {
         background: rgba(255,255,255,.14);
         border-radius: 10px;
     }
 
-    .history-list::-webkit-scrollbar-track {
+    .history-list::-webkit-scrollbar-track,
+    .folders-section::-webkit-scrollbar-track,
+    .content.history-content::-webkit-scrollbar-track,
+    .content.folder-content::-webkit-scrollbar-track {
         background: transparent;
     }
 </style>
@@ -455,8 +1106,8 @@
         <div class="content">
             <div class="menu-card">
                 <div class="menu-head">
-                    <h1>Hola Ángel</h1>
-                    <p>¿Qué idea tenemos hoy en mente?</p>
+                    <h1>Hola Monko! ❤️ </h1>
+                    <p>¿Papas? ¿Helado??</p>
                 </div>
 
                 <div class="menu-actions">
@@ -467,23 +1118,100 @@
         </div>
     </section>
 
-    <section class="view" id="historyView">
+    <section class="view history-view" id="historyView">
         <div class="topbar">
             <div class="top-left">
-                <button class="icon-btn ghost" id="backFromHistory">Volver</button>
                 <div>
                     <div class="title">Historial</div>
                     <div class="subtitle" id="historyCount">0 notas guardadas</div>
                 </div>
             </div>
             <div class="toolbar">
+                <button class="icon-btn ghost" id="folderBtn" title="Crear carpeta">Crear carpeta</button>
                 <button class="icon-btn danger" id="deleteAllBtn" title="Borrar todo">Borrar todo</button>
+
+                <div class="folder-panel" id="folderPanel">
+                    <button class="panel-action" id="createFolderAction">Crear carpeta</button>
+
+                    <label class="switch-row" for="dragModeToggle">
+                        <div class="switch-copy">
+                            <div class="switch-title">Meter notas en carpetas</div>
+                            <div class="switch-subtitle">Actívalo para arrastrar notas y soltarlas sobre una carpeta</div>
+                        </div>
+                        <span class="switch">
+                            <input type="checkbox" id="dragModeToggle" />
+                            <span class="switch-track"></span>
+                            <span class="switch-thumb"></span>
+                        </span>
+                    </label>
+                </div>
             </div>
         </div>
 
-        <div class="content">
+        <div class="content history-content">
             <div class="history-wrap">
-                <div class="history-list" id="historyList"></div>
+                <div class="folders-section">
+                    <div class="section-head">
+                        <div>
+                            <div class="section-title">Carpekokos</div>
+                            <div class="section-subtitle" id="folderHint">Presiona el botón de "Crear carpeta para añadir nuevas, despues seleccionalas para ver su contenido</div>
+                        </div>
+                        <button class="icon-btn ghost clear-filter-btn" id="clearFolderFilterBtn" style="display:none;">Ver todas</button>
+                    </div>
+                    <div class="folder-grid" id="folderGrid"></div>
+                </div>
+
+                <div class="notes-section">
+                    <div class="section-head">
+                        <div>
+                            <div class="section-title">NotaMonkyss!</div>
+                            <div class="section-subtitle">Aca se ponen las notas que aún no metes en carpetas</div>
+                        </div>
+                    </div>
+                    <div class="history-list" id="historyList"></div>
+                </div>
+
+                <div class="editor-actions">
+                    <button class="icon-btn back-bottom" id="backFromHistoryBottom">Volver</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="view folder-view" id="folderView">
+        <div class="topbar">
+            <div class="top-left">
+                <button class="icon-btn ghost" id="backFromFolderBtn">Volver</button>
+                <div>
+                    <div class="title" id="folderViewTitle">Carpeta</div>
+                    <div class="subtitle" id="folderViewSubtitle">0 notas</div>
+                </div>
+            </div>
+            <div class="toolbar">
+                <button class="icon-btn ghost" id="renameFolderTopBtn">Renombrar</button>
+                <button class="icon-btn danger" id="deleteFolderTopBtn">Eliminar</button>
+            </div>
+        </div>
+
+        <div class="content folder-content">
+            <div class="folder-shell">
+                <div class="folder-hero" id="folderHero">
+                    <div class="folder-hero-inner">
+                        <div class="folder-hero-left">
+                            <div class="folder-hero-icon">📁</div>
+                            <div>
+                                <div class="folder-hero-title" id="folderHeroName">Carpeta</div>
+                                <div class="folder-hero-subtitle" id="folderHeroInfo">Vista interna tipo galería</div>
+                            </div>
+                        </div>
+                        <div class="folder-hero-actions">
+                            <button class="icon-btn ghost" id="folderHeroRenameBtn">Renombrar</button>
+                            <button class="icon-btn danger" id="folderHeroDeleteBtn">Eliminar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="folder-gallery" id="folderGallery"></div>
             </div>
         </div>
     </section>
@@ -526,19 +1254,37 @@
 
 </div>
 
+<div class="toast-layer" id="toastLayer"></div>
+
+<div class="folder-action-menu" id="folderActionMenu">
+    <button id="menuRenameBtn">Renombrar carpeta</button>
+    <button class="danger-item" id="menuDeleteBtn">Eliminar carpeta</button>
+</div>
+
 <script>
 (() => {
     const STORAGE_KEY = "minimal_notes_ios";
+    const FOLDERS_KEY = "minimal_notes_ios_folders";
 
     const menuView = document.getElementById("menuView");
     const historyView = document.getElementById("historyView");
     const editorView = document.getElementById("editorView");
+    const folderView = document.getElementById("folderView");
 
     const newBtn = document.getElementById("newBtn");
     const historyBtn = document.getElementById("historyBtn");
-    const backFromHistory = document.getElementById("backFromHistory");
     const backBottom = document.getElementById("backBottom");
+    const backFromHistoryBottom = document.getElementById("backFromHistoryBottom");
+    const backFromFolderBtn = document.getElementById("backFromFolderBtn");
     const deleteAllBtn = document.getElementById("deleteAllBtn");
+
+    const folderBtn = document.getElementById("folderBtn");
+    const folderPanel = document.getElementById("folderPanel");
+    const createFolderAction = document.getElementById("createFolderAction");
+    const dragModeToggle = document.getElementById("dragModeToggle");
+    const folderGrid = document.getElementById("folderGrid");
+    const folderHint = document.getElementById("folderHint");
+    const clearFolderFilterBtn = document.getElementById("clearFolderFilterBtn");
 
     const historyList = document.getElementById("historyList");
     const historyCount = document.getElementById("historyCount");
@@ -548,17 +1294,73 @@
     const noteDate = document.getElementById("noteDate");
     const saveState = document.getElementById("saveState");
     const savedDot = document.getElementById("savedDot");
+    const toastLayer = document.getElementById("toastLayer");
+
+    const folderActionMenu = document.getElementById("folderActionMenu");
+    const menuRenameBtn = document.getElementById("menuRenameBtn");
+    const menuDeleteBtn = document.getElementById("menuDeleteBtn");
+
+    const folderViewTitle = document.getElementById("folderViewTitle");
+    const folderViewSubtitle = document.getElementById("folderViewSubtitle");
+    const folderHero = document.getElementById("folderHero");
+    const folderHeroName = document.getElementById("folderHeroName");
+    const folderHeroInfo = document.getElementById("folderHeroInfo");
+    const folderGallery = document.getElementById("folderGallery");
+    const renameFolderTopBtn = document.getElementById("renameFolderTopBtn");
+    const deleteFolderTopBtn = document.getElementById("deleteFolderTopBtn");
+    const folderHeroRenameBtn = document.getElementById("folderHeroRenameBtn");
+    const folderHeroDeleteBtn = document.getElementById("folderHeroDeleteBtn");
 
     let notes = loadNotes();
+    let folders = loadFolders();
     let currentId = null;
     let currentView = "menu";
     let dirty = false;
+    let activeFolderId = null;
+    let dragModeEnabled = false;
+    let currentFolderId = null;
+    let draggedFolderId = null;
+    let folderMenuFolderId = null;
+
+    const folderPalettes = [
+        ["#ff0aad", "#7a003b"],
+        ["#5ac8fa", "#0e3d7a"],
+        ["#34c759", "#0f5b2f"],
+        ["#ff9f0a", "#7a3f00"],
+        ["#af52de", "#4b1663"],
+        ["#ff375f", "#7f0f22"],
+        ["#64d2ff", "#114f66"]
+    ];
 
     function loadNotes() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             const parsed = raw ? JSON.parse(raw) : [];
-            return Array.isArray(parsed) ? parsed : [];
+            if (!Array.isArray(parsed)) return [];
+            return parsed.map((n) => ({
+                ...n,
+                folderId: n.folderId ?? null,
+                createdAtTs: n.createdAtTs ?? safeParseDate(n.createdAt) ?? Date.now(),
+                updatedAtTs: n.updatedAtTs ?? safeParseDate(n.updatedAt) ?? Date.now()
+            }));
+        } catch {
+            return [];
+        }
+    }
+
+    function loadFolders() {
+        try {
+            const raw = localStorage.getItem(FOLDERS_KEY);
+            const parsed = raw ? JSON.parse(raw) : [];
+            if (!Array.isArray(parsed)) return [];
+            return parsed.map((f) => ({
+                ...f,
+                createdAtTs: f.createdAtTs ?? safeParseDate(f.createdAt) ?? Date.now(),
+                updatedAtTs: f.updatedAtTs ?? safeParseDate(f.updatedAt) ?? Date.now(),
+                color: Array.isArray(f.color)
+                    ? f.color
+                    : (f.color && typeof f.color === "object" ? [f.color.a, f.color.b] : null)
+            }));
         } catch {
             return [];
         }
@@ -568,11 +1370,20 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
     }
 
+    function persistFolders() {
+        localStorage.setItem(FOLDERS_KEY, JSON.stringify(folders));
+    }
+
     function nowStamp() {
         return new Date().toLocaleString("es-MX", {
             dateStyle: "medium",
             timeStyle: "short"
         });
+    }
+
+    function safeParseDate(value) {
+        const t = Date.parse(value);
+        return Number.isFinite(t) ? t : null;
     }
 
     function noteTitle(text) {
@@ -595,6 +1406,7 @@
         menuView.classList.toggle("active", viewName === "menu");
         historyView.classList.toggle("active", viewName === "history");
         editorView.classList.toggle("active", viewName === "editor");
+        folderView.classList.toggle("active", viewName === "folder");
     }
 
     function pulseSaved() {
@@ -618,6 +1430,83 @@
         return notes.findIndex(n => n.id === currentId);
     }
 
+    function getFolderById(id) {
+        return folders.find(f => f.id === id) || null;
+    }
+
+    function getFolderNameById(id) {
+        const folder = getFolderById(id);
+        return folder ? folder.name : "Sin carpeta";
+    }
+
+    function getFolderColor(folder, index = 0) {
+        if (folder && Array.isArray(folder.color) && folder.color.length === 2) {
+            return folder.color;
+        }
+        return folderPalettes[index % folderPalettes.length];
+    }
+
+    function createFolderColor(index) {
+        return folderPalettes[index % folderPalettes.length];
+    }
+
+    function getUnfiledNotes() {
+        return notes
+            .filter(n => !n.folderId)
+            .sort((a, b) => (b.updatedAtTs ?? safeParseDate(b.updatedAt) ?? 0) - (a.updatedAtTs ?? safeParseDate(a.updatedAt) ?? 0));
+    }
+
+    function getFolderNotes(folderId) {
+        return notes
+            .filter(n => (n.folderId ?? null) === folderId)
+            .sort((a, b) => (b.updatedAtTs ?? safeParseDate(b.updatedAt) ?? 0) - (a.updatedAtTs ?? safeParseDate(a.updatedAt) ?? 0));
+    }
+
+    function showToast(message, emoji = "✨") {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.innerHTML = `
+            <span class="toast-emoji">${escapeHTML(emoji)}</span>
+            <span>${escapeHTML(message)}</span>
+        `;
+        toastLayer.appendChild(toast);
+
+        requestAnimationFrame(() => toast.classList.add("show"));
+
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => {
+            toast.classList.remove("show");
+            setTimeout(() => toast.remove(), 240);
+        }, 1800);
+    }
+
+    function pulseFolder(folderId) {
+        const card = folderGrid.querySelector(`.folder-card[data-folder-id="${folderId}"]`);
+        if (!card) return;
+        card.classList.add("success");
+        clearTimeout(card._pulseT);
+        card._pulseT = setTimeout(() => card.classList.remove("success"), 680);
+    }
+
+    function updateFolderPanelState() {
+        dragModeToggle.checked = dragModeEnabled;
+        historyView.classList.toggle("drag-mode", dragModeEnabled);
+
+        if (dragModeEnabled) {
+            folderHint.textContent = "Modo mover activado. Arrastra una nota y suéltala sobre una carpeta.";
+        } else {
+            folderHint.textContent = "Crea carpetas, ordénalas y abre su galería interna.";
+        }
+    }
+
+    function setDragMode(enabled) {
+        dragModeEnabled = Boolean(enabled);
+        dragModeToggle.checked = dragModeEnabled;
+        historyView.classList.toggle("drag-mode", dragModeEnabled);
+        updateFolderPanelState();
+        renderHistory();
+    }
+
     function saveCurrentNote() {
         const text = noteText.value.replace(/\s+$/, "");
         const trimmed = text.trim();
@@ -629,16 +1518,23 @@
         }
 
         const timestamp = nowStamp();
+        const nowTs = Date.now();
 
         const existingIndex = getCurrentIndex();
-        const previousCreatedAt = existingIndex !== -1 ? notes[existingIndex].createdAt : timestamp;
+        const existing = existingIndex !== -1 ? notes[existingIndex] : null;
+        const previousCreatedAt = existing ? existing.createdAt : timestamp;
+        const previousCreatedTs = existing ? (existing.createdAtTs ?? safeParseDate(existing.createdAt) ?? nowTs) : nowTs;
+        const folderId = existing ? (existing.folderId ?? null) : null;
 
         const payload = {
             id: currentId || String(Date.now()) + Math.random().toString(16).slice(2),
             content: text,
             title: noteTitle(text),
             createdAt: previousCreatedAt,
-            updatedAt: timestamp
+            updatedAt: timestamp,
+            createdAtTs: previousCreatedTs,
+            updatedAtTs: nowTs,
+            folderId
         };
 
         if (currentId && existingIndex !== -1) {
@@ -648,7 +1544,7 @@
             currentId = payload.id;
         }
 
-        notes.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        notes.sort((a, b) => (b.updatedAtTs ?? safeParseDate(b.updatedAt) ?? 0) - (a.updatedAtTs ?? safeParseDate(a.updatedAt) ?? 0));
         persistNotes();
         dirty = false;
         noteDate.textContent = `Actualizada: ${payload.updatedAt}`;
@@ -656,17 +1552,28 @@
         return true;
     }
 
-    function openNewNote() {
+    function getCurrentNote() {
+        return notes.find(n => n.id === currentId) || null;
+    }
+
+    function openNewNote(folderId = null) {
         if (currentView === "editor" && dirty) saveCurrentNote();
 
         currentId = null;
         noteText.value = "";
         editorTitle.textContent = "Nueva nota";
-        editorSubtitle.textContent = "La primera línea será el título";
+        editorSubtitle.textContent = folderId ? `Se guardará dentro de: ${getFolderNameById(folderId)}` : "La primera línea será el título";
         noteDate.textContent = "";
         dirty = false;
-        saveState.textContent = "Listo";
         savedDot.classList.remove("show");
+        saveState.textContent = "Listo";
+
+        if (folderId) {
+            currentId = null;
+            noteText.dataset.folderId = folderId;
+        } else {
+            delete noteText.dataset.folderId;
+        }
 
         setView("editor");
         setTimeout(() => noteText.focus(), 50);
@@ -678,6 +1585,19 @@
         setView("history");
     }
 
+    function openFolder(folderId) {
+        if (currentView === "editor" && dirty) saveCurrentNote();
+
+        currentFolderId = folderId;
+        renderFolderView();
+        setView("folder");
+
+        folderView.classList.remove("active");
+        requestAnimationFrame(() => {
+            folderView.classList.add("active");
+        });
+    }
+
     function openNote(id) {
         if (currentView === "editor" && dirty) saveCurrentNote();
 
@@ -687,11 +1607,12 @@
         currentId = note.id;
         noteText.value = note.content || "";
         editorTitle.textContent = note.title || "Sin título";
-        editorSubtitle.textContent = "Edita tu nota y vuelve cuando termines";
+        editorSubtitle.textContent = note.folderId ? `Dentro de: ${getFolderNameById(note.folderId)}` : "Edita tu nota y vuelve cuando termines";
         noteDate.textContent = `Creada: ${note.createdAt} · Actualizada: ${note.updatedAt}`;
         dirty = false;
         saveState.textContent = "Listo";
         savedDot.classList.remove("show");
+        delete noteText.dataset.folderId;
 
         setView("editor");
         setTimeout(() => noteText.focus(), 50);
@@ -728,10 +1649,187 @@
             }
 
             renderHistory();
+            if (currentFolderId) renderFolderView();
         }, 280);
     }
 
-    function attachSwipeHandlers(item, id) {
+    function assignNoteToFolder(noteId, folderId) {
+        const noteIndex = notes.findIndex(n => n.id === noteId);
+        if (noteIndex === -1) return;
+
+        const note = notes[noteIndex];
+        if ((note.folderId ?? null) === folderId) {
+            showToast("Esa nota ya está en esa carpeta", "🫶");
+            return;
+        }
+
+        note.folderId = folderId;
+        note.updatedAt = nowStamp();
+        note.updatedAtTs = Date.now();
+        notes.sort((a, b) => (b.updatedAtTs ?? safeParseDate(b.updatedAt) ?? 0) - (a.updatedAtTs ?? safeParseDate(a.updatedAt) ?? 0));
+        persistNotes();
+        renderHistory();
+        if (currentFolderId) renderFolderView();
+        pulseFolder(folderId);
+
+        const folderName = getFolderNameById(folderId);
+        showToast(`Nota guardada dentro de "${folderName}"`, "📁");
+    }
+
+    function reorderFolders(fromId, toId) {
+        if (fromId === toId) return;
+        const fromIndex = folders.findIndex(f => f.id === fromId);
+        const toIndex = folders.findIndex(f => f.id === toId);
+        if (fromIndex === -1 || toIndex === -1) return;
+
+        const [moved] = folders.splice(fromIndex, 1);
+        folders.splice(toIndex, 0, moved);
+        persistFolders();
+        renderHistory();
+        if (currentFolderId) renderFolderView();
+        showToast("Carpeta reordenada", "🧩");
+    }
+
+    function renameFolder(folderId) {
+        const folder = getFolderById(folderId);
+        if (!folder) return;
+
+        const name = prompt("Nuevo nombre de la carpeta:", folder.name || "");
+        const clean = (name || "").trim();
+        if (!clean) return;
+
+        folder.name = clean;
+        folder.updatedAt = nowStamp();
+        folder.updatedAtTs = Date.now();
+        persistFolders();
+        renderHistory();
+        if (currentFolderId === folderId) renderFolderView();
+        showToast("Carpeta renombrada", "✏️");
+    }
+
+    function deleteFolder(folderId) {
+        const folder = getFolderById(folderId);
+        if (!folder) return;
+
+        const ok = confirm(`¿Eliminar "${folder.name}" y todas sus notas?`);
+        if (!ok) return;
+
+        notes = notes.filter(n => (n.folderId ?? null) !== folderId);
+        folders = folders.filter(f => f.id !== folderId);
+        persistNotes();
+        persistFolders();
+
+        if (currentFolderId === folderId) {
+            currentFolderId = null;
+            setView("history");
+        }
+
+        renderHistory();
+        if (currentFolderId) renderFolderView();
+        showToast("Carpeta eliminada", "🗑️");
+    }
+
+    function openFolderMenu(folderId, anchorEl) {
+        folderMenuFolderId = folderId;
+        const rect = anchorEl.getBoundingClientRect();
+
+        folderActionMenu.style.left = `${Math.min(window.innerWidth - 200, rect.right - 180)}px`;
+        folderActionMenu.style.top = `${Math.min(window.innerHeight - 120, rect.bottom + 8)}px`;
+        folderActionMenu.classList.add("show");
+    }
+
+    function closeFolderMenu() {
+        folderMenuFolderId = null;
+        folderActionMenu.classList.remove("show");
+    }
+
+    function createFolder() {
+        const name = prompt("Nombre de la carpeta:");
+        const clean = (name || "").trim();
+        if (!clean) return;
+
+        const index = folders.length;
+        const color = createFolderColor(index);
+
+        const folder = {
+            id: String(Date.now()) + Math.random().toString(16).slice(2),
+            name: clean,
+            createdAt: nowStamp(),
+            updatedAt: nowStamp(),
+            createdAtTs: Date.now(),
+            updatedAtTs: Date.now(),
+            color: [color[0], color[1]]
+        };
+
+        folders.unshift(folder);
+        persistFolders();
+        activeFolderId = null;
+        renderHistory();
+        folderPanel.classList.remove("show");
+        showToast(`Carpeta "${clean}" creada`, "📁");
+    }
+
+    function deleteAllNotes() {
+        const ok = confirm("¿Borrar todas las notas?");
+        if (!ok) return;
+
+        notes = [];
+        currentId = null;
+        dirty = false;
+        activeFolderId = null;
+        persistNotes();
+        renderHistory();
+
+        if (currentView === "editor") {
+            noteText.value = "";
+            editorTitle.textContent = "Nueva nota";
+            editorSubtitle.textContent = "La primera línea será el título";
+            noteDate.textContent = "";
+            saveState.textContent = "Listo";
+            savedDot.classList.remove("show");
+        }
+
+        showToast("Todas las notas fueron borradas", "🧹");
+    }
+
+    function attachFolderDragHandlers(card) {
+        const folderId = card.dataset.folderId;
+
+        card.addEventListener("dragstart", (e) => {
+            draggedFolderId = folderId;
+            card.classList.add("dragging");
+            try {
+                e.dataTransfer.effectAllowed = "move";
+                e.dataTransfer.setData("text/plain", folderId);
+            } catch {}
+        });
+
+        card.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            if (draggedFolderId && draggedFolderId !== folderId) {
+                card.classList.add("drag-over");
+            }
+        });
+
+        card.addEventListener("dragleave", () => {
+            card.classList.remove("drag-over");
+        });
+
+        card.addEventListener("drop", (e) => {
+            e.preventDefault();
+            card.classList.remove("drag-over");
+            if (draggedFolderId && draggedFolderId !== folderId) {
+                reorderFolders(draggedFolderId, folderId);
+            }
+        });
+
+        card.addEventListener("dragend", () => {
+            draggedFolderId = null;
+            folderGrid.querySelectorAll(".folder-card").forEach(c => c.classList.remove("dragging", "drag-over"));
+        });
+    }
+
+    function attachNoteHandlers(item, id) {
         const surface = item.querySelector(".note-surface");
         const swipeBg = item.querySelector(".swipe-bg");
 
@@ -749,9 +1847,10 @@
             } else {
                 surface.style.transition = "none";
             }
-            surface.style.transform = "translateX(0px)";
+            surface.style.transform = "translate3d(0,0,0)";
             swipeBg.style.opacity = "0";
             item.classList.remove("dragging");
+            item.style.zIndex = "";
         };
 
         item.addEventListener("pointerdown", (e) => {
@@ -765,6 +1864,7 @@
             dragging = false;
             suppressClick = false;
             item.classList.add("dragging");
+            item.style.zIndex = "12";
             surface.style.transition = "none";
 
             try { item.setPointerCapture(pointerId); } catch {}
@@ -772,40 +1872,63 @@
 
         item.addEventListener("pointermove", (e) => {
             if (pointerId !== e.pointerId) return;
+
             dx = e.clientX - startX;
             dy = e.clientY - startY;
 
             if (!dragging) {
-                if (Math.abs(dx) > 7 && Math.abs(dx) > Math.abs(dy)) {
-                    dragging = true;
+                if (dragModeEnabled) {
+                    if (Math.hypot(dx, dy) > 7) {
+                        dragging = true;
+                    } else {
+                        return;
+                    }
                 } else {
-                    return;
+                    if (Math.abs(dx) > 7 && Math.abs(dx) > Math.abs(dy)) {
+                        dragging = true;
+                    } else {
+                        return;
+                    }
                 }
             }
 
             if (!dragging) return;
 
-            if (dx > 0) dx = 0;
+            if (dragModeEnabled) {
+                const translateX = dx;
+                const translateY = dy;
+                surface.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(1.03)`;
+                swipeBg.style.opacity = "0";
 
-            let translate = dx;
+                const el = document.elementFromPoint(e.clientX, e.clientY);
+                const folderCard = el ? el.closest(".folder-card") : null;
+                folderGrid.querySelectorAll(".folder-card.drag-over").forEach(c => {
+                    if (c !== folderCard) c.classList.remove("drag-over");
+                });
+                if (folderCard) folderCard.classList.add("drag-over");
+            } else {
+                if (dx > 0) dx = 0;
 
-            if (translate < -180) {
-                translate = -180 - ((Math.abs(translate) - 180) * 0.14);
-            }
+                let translate = dx;
 
-            surface.style.transform = `translateX(${translate}px)`;
-            const progress = Math.min(1, Math.abs(translate) / 140);
-            swipeBg.style.opacity = String(Math.max(0, progress * 0.95));
+                if (translate < -180) {
+                    translate = -180 - ((Math.abs(translate) - 180) * 0.14);
+                }
 
-            if (Math.abs(translate) > 100 && !item.dataset.hapticed) {
-                item.dataset.hapticed = "1";
-                try {
-                    if (navigator.vibrate) navigator.vibrate(10);
-                } catch {}
-            }
+                surface.style.transform = `translate3d(${translate}px,0,0)`;
+                const progress = Math.min(1, Math.abs(translate) / 140);
+                swipeBg.style.opacity = String(Math.max(0, progress * 0.95));
 
-            if (Math.abs(translate) <= 100) {
-                delete item.dataset.hapticed;
+                if (Math.abs(translate) > 100 && !item.dataset.hapticed) {
+                    item.dataset.hapticed = "1";
+                    try {
+                        if (navigator.vibrate) navigator.vibrate(10);
+                    } catch {}
+                }
+
+                if (Math.abs(translate) <= 100) {
+                    delete item.dataset.hapticed;
+                }
             }
         });
 
@@ -815,9 +1938,15 @@
             try { item.releasePointerCapture(pointerId); } catch {}
             pointerId = null;
 
+            const folderCard = dragModeEnabled ? (() => {
+                const el = document.elementFromPoint(e.clientX, e.clientY);
+                return el ? el.closest(".folder-card") : null;
+            })() : null;
+
             if (!dragging) {
                 item.classList.remove("dragging");
                 surface.style.transition = "transform 280ms cubic-bezier(.22,1,.36,1)";
+                item.style.zIndex = "";
                 return;
             }
 
@@ -826,20 +1955,34 @@
                 suppressClick = false;
             }, 350);
 
-            if (dx < -120) {
-                deleteNoteAnimated(id, item);
+            if (dragModeEnabled) {
+                folderGrid.querySelectorAll(".folder-card.drag-over").forEach(c => c.classList.remove("drag-over"));
+
+                if (folderCard) {
+                    const folderId = folderCard.dataset.folderId;
+                    assignNoteToFolder(id, folderId);
+                    item.classList.add("saved");
+                    setTimeout(() => item.classList.remove("saved"), 650);
+                } else {
+                    resetSurface(true);
+                }
             } else {
+                if (dx < -120) {
+                    deleteNoteAnimated(id, item);
+                    return;
+                }
                 resetSurface(true);
             }
 
             delete item.dataset.hapticed;
+            item.style.zIndex = "";
         };
 
         item.addEventListener("pointerup", finishPointer);
         item.addEventListener("pointercancel", finishPointer);
 
         item.addEventListener("click", (e) => {
-            if (suppressClick || item.classList.contains("removing")) {
+            if (suppressClick || item.classList.contains("removing") || dragModeEnabled) {
                 e.preventDefault();
                 e.stopPropagation();
                 return;
@@ -848,22 +1991,78 @@
         });
     }
 
-    function renderHistory() {
-        notes = loadNotes().sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-
-        const count = notes.length;
-        historyCount.textContent = count === 1 ? "1 nota guardada" : `${count} notas guardadas`;
-
-        if (!count) {
-            historyList.innerHTML = `
-                <div class="empty-state">
-                    No hay notas todavía. Dale a “Nueva” y empieza tu cuaderno digital.
+    function renderFolders() {
+        if (!folders.length) {
+            folderGrid.innerHTML = `
+                <div class="folder-empty">
+                    Aún no tienes carpetas creadas mono :((
                 </div>
             `;
             return;
         }
 
-        historyList.innerHTML = notes.map((n) => `
+        folderGrid.innerHTML = folders.map((folder, index) => {
+            const count = getFolderNotes(folder.id).length;
+            const isActive = false;
+            const [c1, c2] = getFolderColor(folder, index);
+
+            return `
+                <div
+                    class="folder-card ${isActive ? 'active' : ''}"
+                    draggable="true"
+                    data-folder-id="${escapeHTML(folder.id)}"
+                    style="background:
+                        radial-gradient(circle at top right, rgba(255,255,255,.10), transparent 38%),
+                        linear-gradient(180deg, ${c1}, ${c2});">
+                    <button class="folder-menu-btn" data-folder-id="${escapeHTML(folder.id)}" title="Opciones">⋯</button>
+                    <div class="folder-icon">📁</div>
+                    <div class="folder-name">${escapeHTML(folder.name)}</div>
+                    <div class="folder-count">${count} nota${count === 1 ? '' : 's'}</div>
+                    <div class="folder-chip">Abrir galería</div>
+                </div>
+            `;
+        }).join("");
+
+        folderGrid.querySelectorAll(".folder-card").forEach(card => {
+            const id = card.dataset.folderId;
+            attachFolderDragHandlers(card);
+
+            card.addEventListener("click", (e) => {
+                if (e.target.closest(".folder-menu-btn")) return;
+                openFolder(id);
+            });
+        });
+
+        folderGrid.querySelectorAll(".folder-menu-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const id = btn.dataset.folderId;
+                openFolderMenu(id, btn);
+            });
+        });
+    }
+
+    function renderHistory() {
+        notes = loadNotes().sort((a, b) => (b.updatedAtTs ?? safeParseDate(b.updatedAt) ?? 0) - (a.updatedAtTs ?? safeParseDate(a.updatedAt) ?? 0));
+        folders = loadFolders();
+
+        const unfiledNotes = getUnfiledNotes();
+        const totalFolders = folders.length;
+
+        historyCount.textContent = `${unfiledNotes.length} nota${unfiledNotes.length === 1 ? '' : 's'} suelta${unfiledNotes.length === 1 ? '' : 's'} · ${totalFolders} carpeta${totalFolders === 1 ? '' : 's'}`;
+
+        renderFolders();
+
+        if (!unfiledNotes.length) {
+            historyList.innerHTML = `
+                <div class="empty-state">
+                    No has creado ninguna nota mona, o si hiciste alguna, tal vez estan dentro de su carpeta :3
+                </div>
+            `;
+            return;
+        }
+
+        historyList.innerHTML = unfiledNotes.map((n) => `
             <div class="note-item" data-id="${escapeHTML(n.id)}">
                 <div class="swipe-bg">Desliza para borrar</div>
                 <div class="note-surface">
@@ -879,8 +2078,89 @@
 
         historyList.querySelectorAll(".note-item").forEach(item => {
             const id = item.dataset.id;
-            attachSwipeHandlers(item, id);
+            attachNoteHandlers(item, id);
         });
+    }
+
+    function renderFolderView() {
+        const folder = getFolderById(currentFolderId);
+        if (!folder) {
+            setView("history");
+            renderHistory();
+            return;
+        }
+
+        const index = folders.findIndex(f => f.id === folder.id);
+        const [c1, c2] = getFolderColor(folder, index);
+        const folderNotes = getFolderNotes(folder.id);
+
+        folderHero.style.background = `
+            radial-gradient(circle at top right, rgba(255,255,255,.10), transparent 38%),
+            linear-gradient(180deg, ${c1}, ${c2})
+        `;
+
+        folderViewTitle.textContent = folder.name;
+        folderViewSubtitle.textContent = `${folderNotes.length} nota${folderNotes.length === 1 ? '' : 's'} dentro`;
+        folderHeroName.textContent = folder.name;
+        folderHeroInfo.textContent = `${folderNotes.length} nota${folderNotes.length === 1 ? '' : 's'} almacenada${folderNotes.length === 1 ? '' : 's'} aquí`;
+        folderGallery.innerHTML = "";
+
+        if (!folderNotes.length) {
+            folderGallery.innerHTML = `
+                <div class="folder-empty-state">
+                    Esta carpeta está vacía. Puedes meter notas arrastrándolas desde Historial.
+                </div>
+            `;
+            return;
+        }
+
+        folderGallery.innerHTML = folderNotes.map((n) => {
+            const preview = (n.content || "").trim().slice(0, 160) || "Sin contenido";
+            const lineCount = (n.content || "").split("\n").length;
+            return `
+                <div class="gallery-note" data-id="${escapeHTML(n.id)}">
+                    <div class="gallery-note-inner">
+                        <div class="gallery-note-title">${escapeHTML(n.title || "Sin título")}</div>
+                        <div class="gallery-note-preview">${escapeHTML(preview)}</div>
+                        <div class="gallery-note-meta">
+                            <span>${escapeHTML(n.updatedAt || n.createdAt || "")}</span>
+                            <span>•</span>
+                            <span>${lineCount} línea${lineCount === 1 ? '' : 's'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join("");
+
+        folderGallery.querySelectorAll(".gallery-note").forEach(card => {
+            card.addEventListener("click", () => openNote(card.dataset.id));
+        });
+    }
+
+    function createFolder() {
+        const name = prompt("Nombre de la carpeta:");
+        const clean = (name || "").trim();
+        if (!clean) return;
+
+        const index = folders.length;
+        const color = createFolderColor(index);
+
+        const folder = {
+            id: String(Date.now()) + Math.random().toString(16).slice(2),
+            name: clean,
+            createdAt: nowStamp(),
+            updatedAt: nowStamp(),
+            createdAtTs: Date.now(),
+            updatedAtTs: Date.now(),
+            color: [color[0], color[1]]
+        };
+
+        folders.unshift(folder);
+        persistFolders();
+        activeFolderId = null;
+        renderHistory();
+        folderPanel.classList.remove("show");
+        showToast(`Carpeta "${clean}" creada`, "📁");
     }
 
     function deleteAllNotes() {
@@ -890,6 +2170,7 @@
         notes = [];
         currentId = null;
         dirty = false;
+        activeFolderId = null;
         persistNotes();
         renderHistory();
 
@@ -901,21 +2182,99 @@
             saveState.textContent = "Listo";
             savedDot.classList.remove("show");
         }
+
+        showToast("Todas las notas fueron borradas", "🧹");
     }
 
-    newBtn.addEventListener("click", openNewNote);
+    function closeAllMenus() {
+        folderPanel.classList.remove("show");
+        closeFolderMenu();
+    }
+
+    newBtn.addEventListener("click", () => openNewNote());
     historyBtn.addEventListener("click", openHistory);
-    backFromHistory.addEventListener("click", () => setView("menu"));
 
     backBottom.addEventListener("click", () => {
         if (dirty) saveCurrentNote();
         setView("menu");
     });
 
+    backFromHistoryBottom.addEventListener("click", () => {
+        setView("menu");
+    });
+
+    backFromFolderBtn.addEventListener("click", () => {
+        currentFolderId = null;
+        setView("history");
+        renderHistory();
+    });
+
     deleteAllBtn.addEventListener("click", deleteAllNotes);
+
+    folderBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        folderPanel.classList.toggle("show");
+        closeFolderMenu();
+    });
+
+    createFolderAction.addEventListener("click", () => {
+        createFolder();
+    });
+
+    dragModeToggle.addEventListener("change", () => {
+        setDragMode(dragModeToggle.checked);
+    });
+
+    clearFolderFilterBtn.addEventListener("click", () => {
+        activeFolderId = null;
+        renderHistory();
+    });
 
     noteText.addEventListener("input", () => {
         markDirty();
+    });
+
+    renameFolderTopBtn.addEventListener("click", () => {
+        if (currentFolderId) renameFolder(currentFolderId);
+    });
+
+    deleteFolderTopBtn.addEventListener("click", () => {
+        if (currentFolderId) deleteFolder(currentFolderId);
+    });
+
+    folderHeroRenameBtn.addEventListener("click", () => {
+        if (currentFolderId) renameFolder(currentFolderId);
+    });
+
+    folderHeroDeleteBtn.addEventListener("click", () => {
+        if (currentFolderId) deleteFolder(currentFolderId);
+    });
+
+    menuRenameBtn.addEventListener("click", () => {
+        if (folderMenuFolderId) renameFolder(folderMenuFolderId);
+        closeFolderMenu();
+    });
+
+    menuDeleteBtn.addEventListener("click", () => {
+        if (folderMenuFolderId) deleteFolder(folderMenuFolderId);
+        closeFolderMenu();
+    });
+
+    folderActionMenu.addEventListener("click", (e) => {
+        e.stopPropagation();
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!folderPanel.contains(e.target) && !folderBtn.contains(e.target)) {
+            folderPanel.classList.remove("show");
+        }
+        if (!folderActionMenu.contains(e.target)) {
+            closeFolderMenu();
+        }
+    });
+
+    window.addEventListener("resize", () => {
+        closeFolderMenu();
     });
 
     window.addEventListener("beforeunload", () => {
@@ -923,6 +2282,7 @@
     });
 
     renderHistory();
+    updateFolderPanelState();
 })();
 </script>
 </body>
